@@ -1,12 +1,23 @@
+#!/usr/bin/env python3
+"""
+Import packages
+"""
 import collections
-
 from .serializers import DeviceSerializer
 from .models import Device, Dimension, DeviceDimension
 
 
+# Converting gateway raw data into ORM data
 class DataProcess:
+    """
+    request raw data
+    response data in form of different method
+    """
     def __init__(self, values):
-        # self.data = data
+        """
+        request data views in raw data
+        :param values:
+        """
         self.slice_data = collections.defaultdict(list)
         self.latest_data = None
         self.due_date_data = None
@@ -16,9 +27,90 @@ class DataProcess:
         self.__process(values['data'])
 
     def __process(self, values):
-        date_time = {}
-        due_date = {}
-        temp = []
+        """
+        internal method used to process data
+        request data:
+        {
+            "data":[
+                { // Date and time of the measurement
+                    "value":"2020-06-26T06:49:00.000000",
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Time Point (time & date)",
+                    "storagenr":0
+                },
+                { // Latest value from the device
+                    "value":29690,
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Energy (kWh)",
+                    "storagenr":0
+                },
+                { // The due date
+                    "value":"2019-09-30T00:00:00.000000",
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Time Point (date)",
+                    "storagenr":1
+                },
+                { // The value at the due date
+                    "value":16274,
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Energy (kWh)",
+                    "storagenr":1
+                }
+            ],
+            "device":{
+                "type":4, //Device type
+                "status":0,
+                "identnr":83251076, //Device ID
+                "version":0, //Device version
+                "accessnr":156,
+                "manufacturer":5317 //Device manufacturer
+                }
+        }
+        :param values:
+        :return:
+        {
+            "data":[
+                { // Latest value from the device
+                    "value":29690,
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Energy (kWh)",
+                    "storagenr":0
+                    "date":"2020-06-26T06:49:00.000000",
+                    "type": reading
+                },
+                { // The value at the due date
+                    "value":16274,
+                    "tariff":0,
+                    "subunit":0,
+                    "dimension":"Energy (kWh)",
+                    "storagenr":1
+                    "date":"2019-09-30T00:00:00.000000",
+                    "type": due
+                }
+            ],
+            "device":{
+                "type":4, //Device type
+                "status":0,
+                "identnr":83251076, //Device ID
+                "version":0, //Device version
+                "accessnr":156,
+                "manufacturer":5317 //Device manufacturer
+                }
+        }
+
+        """
+        date_time = {}  # Variable to store reading data and time after slicing
+        due_date = {}  # Variable to store due data after slicing
+        temp = []   # Variable to store json after slicing
+
+        # Iteration used to get all
+        # date and time  falling in iteration
+        # Used to clean the data
         for data in values:
             if self.dimention[data['dimension']] == 1:
                 date_time[data['storagenr']] = data['value']
@@ -30,6 +122,7 @@ class DataProcess:
             data.update({'dimension': self.dimention[data['dimension']]})
             temp.append(data)
 
+        # Merging reading date time and due date with slice data
         for item in temp:
             if item.get('storagenr') in date_time.keys():
                 item.update({'date': date_time[item.get('storagenr')]})
@@ -54,15 +147,36 @@ class DataProcess:
         return self.get()
 
     def get(self):
+        """
+        Return slice data stored in class variable
+        :return:
+        """
         return self.slice_data
 
     def get_latest_data(self):
+        """
+        return reading data and time stored in class variable
+        :return:
+        """
         return self.latest_data
 
     def get_due_date_data(self):
+        """
+        return date data stored in class variable
+        :return:
+        """
         return self.due_date_data
 
     def get_device(self, data):
+        """
+        if device exist:
+            return device detail
+        else:
+            create new device
+            and return new created device
+        :param data:
+        :return:
+        """
         device = Device.objects.filter(identnr=data['identnr']).first()
         if device is None:
             device = DeviceSerializer(data=data)
@@ -73,12 +187,9 @@ class DataProcess:
         return device
 
     def __get_dimension(self):
+        """
+        create dist of dimension and store in dimension class variable
+        :return:
+        """
         for row in Dimension.objects.all():
             self.dimention[row.name] = row.id
-
-class CsvGenerate:
-    def __init__(self):
-        pass
-
-    def get(self):
-        data = DeviceDimension.objects.all()

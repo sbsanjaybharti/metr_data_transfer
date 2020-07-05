@@ -1,39 +1,44 @@
-from django.shortcuts import render
-from django.http import Http404
+#!/usr/bin/env python3
+"""
+Import packages
+"""
 import csv
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import ListAPIView
-from .serializers import DeviceSerializer, MeasurementSerializer, DeviceDimensionSerializer, DueSerializer, \
+from .serializers import MeasurementSerializer, DeviceDimensionSerializer, DueSerializer, \
     CsvDataSerializer, CsvHeaderSerializer
 from .service import DataProcess
 from .models import DeviceDimension
 
 
 # Create your views here.
-
+#
 class DataList(APIView):
     """
-    List all Data, or store new data record.
+    Class controller to handle for insert the data in json form.
     """
 
     def get(self, request, format=None):
-        # snippets = Snippet.objects.all()
-        # serializer = SnippetSerializer(snippets, many=True)
-        # return Response(serializer.data)
+        """
+        display the page
+        :param request:
+        :param format:
+        :return:
+        """
         return Response({}, status=status.HTTP_201_CREATED)
 
     def post(self, request, format=None):
-        print("Requested:")
-        # device = DeviceSerializer(data=request.data['device'])
-        # if device.is_valid() is False:
-        #     return Response(device.errors, status=status.HTTP_400_BAD_REQUEST)
-        # device.save()
+        """
+        Request json to process
+        :param request:
+        :param format:
+        :return:
+        """
         data = DataProcess(request.data)
         for row in dict(data.get()):
-            print(data.device)
             item = {
                 'device': data.device.id,
                 'dimension': row
@@ -46,32 +51,19 @@ class DataList(APIView):
                 if dd.is_valid() is False:
                     return Response(dd.errors, status=status.HTTP_400_BAD_REQUEST)
                 dd.save()
-            for row in data.slice_data[row]:
-                print('insert', row)
-                row.update({'device_dimension': dd.data.get('id')})
-                print(row)
-                if row['type'] == 'reading':
-                    mesurement = MeasurementSerializer(data=row)
+            for item in data.slice_data[row]:
+                item.update({'device_dimension': dd.data.get('id')})
+                if item['type'] == 'reading':
+                    mesurement = MeasurementSerializer(data=item)
                     if mesurement.is_valid() is False:
                         return Response(mesurement.errors, status=status.HTTP_400_BAD_REQUEST)
                     mesurement.save()
                 else:
-                    due = DueSerializer(data=row)
+                    due = DueSerializer(data=item)
                     if due.is_valid() is False:
                         return Response(due.errors, status=status.HTTP_400_BAD_REQUEST)
                     due.save()
-        # for row in data.get_latest_data():
-        #     print('insert', row)
-        #     mesurement = MeasurementSerializer(data=row)
-        #     if mesurement.is_valid() is False:
-        #         return Response(mesurement.errors, status=status.HTTP_400_BAD_REQUEST)
-        #     mesurement.save()
-        # for row in data.get_due_date_data():
-        #     print('insert', row)
-        #     mesurement = MeasurementSerializer(data=row)
-        #     if mesurement.is_valid() is False:
-        #         return Response(mesurement.errors, status=status.HTTP_400_BAD_REQUEST)
-        #     mesurement.save()
+
         response = {
             'message': 'Data saved sucessfully',
             'data': {
@@ -83,39 +75,56 @@ class DataList(APIView):
         return Response(response, status=status.HTTP_201_CREATED)
 
 
+# class to convert data into CSV
 class CSVAPIView(ListAPIView):
+    """
+    Generics view process to list the data into CSV
+    """
     queryset = DeviceDimension.objects.all()
 
     serializer_class = CsvDataSerializer
 
     def get_queryset(self):
+        """
+        Query to get the data from device dimension
+        :return:
+        """
         queryset_list = DeviceDimension.objects.all()
 
         return queryset_list
 
     def get(self, request, format=None):
+        """
+        Converting json data into csv form
+        :param request:
+        :param format:
+        :return:
+        """
+        # Setting csv http response
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="export.csv"'
 
-        # snippets = Snippet.objects.all()
-        # serializer = SnippetSerializer(snippets, many=True)
-        # return Response(serializer.data)
-        list = []
-        for row in self.get_queryset():
-            list.append({
-                'date_time': row.created_date(),
-                'device_id': row.device.identnr,
-                'device_manufacturer': row.device.manufacturer.name,
-                'device_type': row.device.type,
-                'device_version': row.device.version,
-                'dimension_measurement': row.dimension.name,
-                'dimension_measurement_value': row.latest_measurement_value(),
-                'dimension_due_value': row.latest_due_value(),
-                'dimension_due_date': row.latest_due_date(),
-            })
+        # list = []
+        # converting ORM data from json
+        # for row in self.get_queryset():
+        #     list.append({
+        #         'date_time': row.created_date(),
+        #         'device_id': row.device.identnr,
+        #         'device_manufacturer': row.device.manufacturer.name,
+        #         'device_type': row.device.type,
+        #         'device_version': row.device.version,
+        #         'dimension_measurement': row.dimension.name,
+        #         'dimension_measurement_value': row.latest_measurement_value(),
+        #         'dimension_due_value': row.latest_due_value(),
+        #         'dimension_due_date': row.latest_due_date(),
+        #     })
+
+        # Setting csv header
         header = CsvHeaderSerializer.Meta.fields
         writer = csv.DictWriter(response, fieldnames=header)
         writer.writeheader()
+
+        # Iteration process for each row
         for row in self.get_queryset():
             temp = {
                 'date_time': row.created_date(),
@@ -131,4 +140,3 @@ class CSVAPIView(ListAPIView):
             writer.writerow(temp)
 
         return response
-        # return Response(list, status=status.HTTP_201_CREATED)
