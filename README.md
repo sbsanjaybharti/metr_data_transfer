@@ -9,12 +9,12 @@ Django rest framework
 * docker
 
 ### Architecture:
-#### Architecture 
-![](architecture.png)
 #### Structure
 ![](structure.png)
 #### Schema
 ![](schema.png)
+#### Architecture 
+![](architecture.png)
 
 #### Step-1
 1. Install Docker 
