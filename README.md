@@ -37,13 +37,15 @@ Django rest framework
    
  #### Step-3 Database setup
 1. Open the link http://phpmyadmin.docker.localhost
-2. Username: root, password: root
+2. Username: root, password: example
 3. create database metr
 4. on the terminal follow the command
-5. docker-compose exec development /bin/bash
-6. python manage.py makemigration
-7. python manage.py migrate
-8. python manage.py rmq start( to start the rabbitMQ worker to consume the message)
+```
+>>> docker-compose exec development /bin/bash
+>>> python manage.py makemigration
+>>> python manage.py migrate
+>>> python manage.py rmq start( to start the rabbitMQ worker to consume the message)
+```
 
 #### Step-4 Check RabbitMQ
 1. Open the url http://rabbit.docker.localhost/
