@@ -50,6 +50,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+*migrations
+*mysql_dumps
 
 # Translations
 *.mo

@@ -1,0 +1,97 @@
+version: '3'
+services:
+  # #############################################################
+  # Traefik
+  # #############################################################
+  traefik:
+    image: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/etc/traefik/traefik.toml
+
+
+  # #############################################################
+  # django Application
+  # #############################################################
+  development:
+    build:
+      context: ./development
+      dockerfile: local.Dockerfile
+    environment:
+      APP_NAME: development
+      ALLOWD_HOST: 'development.docker.localhost'
+      SITE_URL: 'development.docker.localhost'
+      SECRET_KEY: 'testing_metr'
+      DB_NAME: 'metr'
+      DB_USER: 'root'
+      DB_PASSWORD: 'example'
+      DB_HOST: 'mysql'
+    volumes:
+      - ./development:/app
+    depends_on:
+      - mysql
+    labels:
+      - "traefik.backend=boilerplate"
+      - "traefik.frontend.rule=Host:development.docker.localhost"
+      - "traefik.port=8001"
+      - "traefik.enable=true"
+
+
+  # #############################################################
+  # Mysql Database
+  # #############################################################
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - mysql_database:/var/lib/mysql
+      - ./mysql_dumps:/dumps
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+
+
+  # #############################################################
+  # phpMyAdmin
+  # #############################################################
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+    labels:
+      - "traefik.backend=phpmyadmin"
+      - "traefik.frontend.rule=Host:phpmyadmin.docker.localhost"
+      - "traefik.port=80"
+      - "traefik.enable=true"
+    depends_on:
+      - mysql
+
+  # #############################################################
+  # CRON dumps mysql
+  # #############################################################
+  mysql_dump:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: example
+      CRON_TIME: "* * * * *" # every minute
+    volumes:
+      - ./mysql_dumps:/backup
+    depends_on:
+      - mysql
+  redis:
+    image: redis
+    labels:
+      - "traefik.backend=redis"
+      - "traefik.frontend.rule=Host:redis.docker.localhost"
+      - "traefik.port=6379"
+      - "traefik.enable=true"
+
+volumes:
+  mysql_database:
