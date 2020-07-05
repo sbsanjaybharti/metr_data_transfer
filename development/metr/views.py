@@ -10,12 +10,35 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView
 from .serializers import MeasurementSerializer, DeviceDimensionSerializer, DueSerializer, \
     CsvDataSerializer, CsvHeaderSerializer
-from .service import DataProcess
+from .service import DataProcess, MessageProcess
 from .models import DeviceDimension
+from .rabbitmq import RabbitMq
 
 
 # Create your views here.
-#
+class GatewayConnect(APIView):
+    """
+    Class use to read message from queue system
+    """
+    def get(self, request, format=None):
+        """
+        Start the server and process the queue
+        :param request:
+        :param format:
+        :return:
+        """
+        server = RabbitMq()
+        server.startserver()
+
+        response_object = {
+            'code': '200',
+            'type': 'Response',
+            'message': 'RadditMQ server started'
+        }
+
+        return Response(response_object, status=status.HTTP_201_CREATED)
+
+
 class DataList(APIView):
     """
     Class controller to handle for insert the data in json form.
@@ -37,41 +60,17 @@ class DataList(APIView):
         :param format:
         :return:
         """
-        data = DataProcess(request.data)
-        for row in dict(data.get()):
-            item = {
-                'device': data.device.id,
-                'dimension': row
+        print(request.data)
+        flag = MessageProcess(request.data).set()
+        if flag is True:
+            response = {
+                'message': 'Data saved sucessfully',
             }
-            dd = DeviceDimension.objects.filter(device=data.device.id, dimension=row).first()
-            if dd:
-                dd = DeviceDimensionSerializer(dd)
-            else:
-                dd = DeviceDimensionSerializer(data=item)
-                if dd.is_valid() is False:
-                    return Response(dd.errors, status=status.HTTP_400_BAD_REQUEST)
-                dd.save()
-            for item in data.slice_data[row]:
-                item.update({'device_dimension': dd.data.get('id')})
-                if item['type'] == 'reading':
-                    mesurement = MeasurementSerializer(data=item)
-                    if mesurement.is_valid() is False:
-                        return Response(mesurement.errors, status=status.HTTP_400_BAD_REQUEST)
-                    mesurement.save()
-                else:
-                    due = DueSerializer(data=item)
-                    if due.is_valid() is False:
-                        return Response(due.errors, status=status.HTTP_400_BAD_REQUEST)
-                    due.save()
+        else:
+            response = {
+                'message': 'Something went wrong',
+            }
 
-        response = {
-            'message': 'Data saved sucessfully',
-            'data': {
-                'device': data.device.identnr,
-                'version': data.device.version,
-                'manufacturer': data.device.manufacturer.name
-            }
-        }
         return Response(response, status=status.HTTP_201_CREATED)
 
 

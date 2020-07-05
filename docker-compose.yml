@@ -30,6 +30,14 @@ services:
       DB_USER: 'root'
       DB_PASSWORD: 'example'
       DB_HOST: 'mysql'
+      CELERY_BROKER_URL: 'amqp://rabbitmq:rabbitmq@rabbit1:5672/'
+      CELERY_RESULT_BACKEND: 'rpc://'
+      RABBITMQ_HOST: 'rabbit1'
+      RABBITMQ_USERNAME: 'rabbitmq'
+      RABBITMQ_PASSWORD: 'rabbitmq'
+      RABBITMQ_ROUTINGKEY: 'csv-routing-key'
+      RABBITMQ_EXCHANGE: 'csv-exchange'
+      RABBITMQ_QUEUE: 'csv-queue'
     volumes:
       - ./development:/app
     depends_on:
@@ -92,6 +100,52 @@ services:
       - "traefik.frontend.rule=Host:redis.docker.localhost"
       - "traefik.port=6379"
       - "traefik.enable=true"
+
+  # #############################################################
+  # Rabbit MQ server
+  # #############################################################
+  rabbit1:
+    image: "rabbitmq:3-management"
+    hostname: "rabbit1"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      - "traefik.backend=rabbit"
+      - "traefik.frontend.rule=Host:rabbit.docker.localhost"
+      - "traefik.port=15672"
+      - "traefik.enable=true"
+    volumes:
+      - "./rabbit/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+      #- "./rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro"
+      #- "./autocluster-0.4.1.ez:/usr/lib/rabbitmq/lib/rabbitmq_server-3.5.5/plugins/autocluster-0.4.1.ez"
+
+  # #############################################################
+  # Celery Worker to handle Queue process
+  # #############################################################
+  worker:
+    build:
+      context: ./development
+      dockerfile: local.Dockerfile
+    command: celery -A api.utility.celery.celery worker --loglevel=info
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: realxdata
+      DB_USER: root
+      DB_PASSWORD: root
+    volumes:
+      - ./development:/app
+    links:
+      - rabbit1
+    depends_on:
+      - rabbit1
+      - mysql
 
 volumes:
   mysql_database:

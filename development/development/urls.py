@@ -25,9 +25,10 @@ from django.conf.urls.static import static
 # ]
 
 urlpatterns = [
+    path('start', views.GatewayConnect.as_view()),
     path('', views.DataList.as_view()),
     path('<int:pk>/', views.DataList.as_view()),
-    path('list', views.CSVAPIView.as_view())
+    path('csv', views.CSVAPIView.as_view())
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

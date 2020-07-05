@@ -3,7 +3,7 @@
 Import packages
 """
 import collections
-from .serializers import DeviceSerializer
+from .serializers import DeviceSerializer, DeviceDimensionSerializer, MeasurementSerializer, DueSerializer
 from .models import Device, Dimension, DeviceDimension
 
 
@@ -193,3 +193,52 @@ class DataProcess:
         """
         for row in Dimension.objects.all():
             self.dimention[row.name] = row.id
+
+
+class MessageProcess:
+    """
+    Proxy pattern
+    Class function as a interface to resource(DataProcess)
+    """
+    def __init__(self, request):
+        """ request data send to other resource to process """
+        self.data = DataProcess(request)
+
+    def set(self):
+        """ Process data is stored in database """
+        data = self.data
+
+        # Iteration used store each record
+        for row in dict(data.get()):
+
+            item = {
+                'device': data.device.id,
+                'dimension': row
+            }
+            # if dimension of a specific device exist then fetch the data for process
+            dd = DeviceDimension.objects.filter(device=data.device.id, dimension=row).first()
+            if dd:
+                # if exist then retrieve the data
+                dd = DeviceDimensionSerializer(dd)
+            else:
+                # if not then create new one
+                dd = DeviceDimensionSerializer(data=item)
+                if dd.is_valid() is False:
+                    return False
+                dd.save()
+            # Internal iteration for storing measurement or due date data
+            for item in data.slice_data[row]:
+                item.update({'device_dimension': dd.data.get('id')})
+                if item['type'] == 'reading':
+                    # store in measurement table if its a reading info
+                    mesurement = MeasurementSerializer(data=item)
+                    if mesurement.is_valid() is False:
+                        return False
+                    mesurement.save()
+                else:
+                    # store in due table if its a due date info
+                    due = DueSerializer(data=item)
+                    if due.is_valid() is False:
+                        return False
+                    due.save()
+        return True
