@@ -68,9 +68,15 @@ class DeviceDimension(models.Model):
         """ Meta class used for making a relation with table"""
         db_table = "metr_device_dimension"
 
-    def latest_measurement(self):
+    def latest_measurement(self, year, month):
         """ Method for one to many relation with measurement data for latest data based on dimension """
-        return Measurement.objects.filter(device_dimension=self.id).order_by('-date').first()
+        result = Measurement.objects.filter(device_dimension=self.id).\
+            filter(date__year=year).filter(date__month=month).order_by('-date').first()
+
+        return {
+            'value': result.value if result else None,
+            'date': result.date.strftime("%b %d %Y %H:%M:%S") if result else None,
+        }
 
     def latest_measurement_value(self):
         """ Method to get value """
@@ -84,9 +90,16 @@ class DeviceDimension(models.Model):
             return None
         return self.latest_measurement().date.strftime("%b %d %Y %H:%M:%S")
 
-    def latest_due(self):
+    def latest_due(self, year, month):
         """ Method for one to many relation with due data for latest data based on dimension """
-        return Due.objects.filter(device_dimension=self.id).order_by('-date').first()
+        result = Due.objects.filter(device_dimension=self.id).\
+            filter(date__year=year).filter(date__month=month).order_by('-date').first()
+
+        return {
+            'value': result.value if result else None,
+            'date': result.date.strftime("%b %d %Y %H:%M:%S") if result else None,
+        }
+
 
     def latest_due_value(self):
         """ Method to get value """

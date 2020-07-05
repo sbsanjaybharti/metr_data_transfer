@@ -4,6 +4,7 @@ Import packages
 """
 from rest_framework import serializers
 from .models import Device, Measurement, DeviceDimension, Due, Manufacturer, Dimension
+import datetime
 
 
 class ManufacturerSerializer(serializers.ModelSerializer):
@@ -100,6 +101,16 @@ class CsvDataSerializer(serializers.ModelSerializer):
         fields = ('id', 'dimension', 'device')
 
 
+class FilterSerializer(serializers.Serializer):
+    """
+    Serializer for date entry
+    """
+    year = serializers.CharField(initial=datetime.datetime.now().year)
+    month = serializers.CharField(initial=datetime.datetime.now().month)
+    # class Meta:
+    #     """ Meta class for request field """
+
+
 class CsvHeaderSerializer(serializers.ModelSerializer):
     """
     CsvHeader Serializer for CSV header
@@ -114,5 +125,6 @@ class CsvHeaderSerializer(serializers.ModelSerializer):
                   'device_version',
                   'dimension_measurement',
                   'dimension_measurement_value',
+                  'dimension_measurement_date',
                   'dimension_due_value',
                   'dimension_due_date')
