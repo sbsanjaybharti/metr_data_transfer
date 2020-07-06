@@ -52,4 +52,14 @@ Django rest framework
 2. Create Exchange" csv-exchange, Routing key: csv-routing-key, Queue; csv-queue
 3. Now if you add message to queue the data will transfer to MySQL
 
+#### Step-5 How to test
+1. Test the message process: start the server by
+```
+>>> docker-compose exec development /bin/bash
+>>> python manage.py rmq start
+```
+now add the message to queue and check application database
+you can also check same process directaly on http://development.docker.localhost
+2. Open the url http://development.docker.localhost/csv
+insert the year any month to recove CSV file
 
