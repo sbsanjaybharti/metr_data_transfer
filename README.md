@@ -45,6 +45,7 @@ Django rest framework
 >>> python manage.py makemigration
 >>> python manage.py migrate
 >>> python manage.py rmq start( to start the rabbitMQ worker to consume the message)
+>>> python manage.py loaddata fixtures/initial_data.json (import default data)
 ```
 
 #### Step-4 Check RabbitMQ
