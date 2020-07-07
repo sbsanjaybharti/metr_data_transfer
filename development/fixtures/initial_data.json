@@ -1,8 +1,15 @@
 [
-  {"model": "metr.manufacturer", "pk": 5317, "fields": {"name": "Device Manufecturer name", "created_at": null, "updated_at": null}},
-  {"model": "auth.group", "pk": 1, "fields": {"name": "admin", "permissions": []}},
-  {"model": "auth.user", "pk": 1, "fields": {"password": "pbkdf2_sha256$120000$3eDQr1hujpV9$tnGBJTFcfcIPwRxc+SJqs6qDWVq6YUpiOUiEqeULWdU=", "last_login": "2020-07-02 16:37:33.458353", "is_superuser": true, "username": "admin", "first_name": "", "last_name": "", "email": "admin@example.com", "is_staff": true, "is_active": true, "date_joined": "2020-07-02 16:37:14.295569", "groups": [], "user_permissions": []}},
-  {"model": "metr.device", "pk": 2, "fields": {"identnr": 83110033, "manufacturer": 5317, "accessnr": 89, "version": 37, "status": false, "type": 8, "created_at": "2020-07-03T16:59:19.120Z", "updated_at": null}},
-  {"model": "metr.device", "pk": 3, "fields": {"identnr": 83110033, "manufacturer": 5317, "accessnr": 89, "version": 37, "status": false, "type": 8, "created_at": "2020-07-03T17:10:10.495Z", "updated_at": null}},
-  {"model": "metr.device", "pk": 4, "fields": {"identnr": 83110039, "manufacturer": 5317, "accessnr": 99, "version": 39, "status": false, "type": 9, "created_at": "2020-07-03T17:11:31.607Z", "updated_at": null}}
+	{"model": "metr.manufacturer", "pk": 5317, "fields": {"name": "Device Manufecturer name", "created_at": null, "updated_at": null}},
+	{"model": "auth.group", "pk": 1, "fields": {"name": "admin", "permissions": []}},
+	{"model": "auth.user", "pk": 1, "fields": {"password": "pbkdf2_sha256$120000$3eDQr1hujpV9$tnGBJTFcfcIPwRxc+SJqs6qDWVq6YUpiOUiEqeULWdU=", "is_superuser": true, "username": "admin", "first_name": "", "last_name": "", "email": "admin@example.com", "is_staff": true, "is_active": true, "groups": [], "user_permissions": []}},
+	{"model": "metr.device", "pk": 2, "fields": {"identnr": 83110033, "manufacturer": 5317, "accessnr": 89, "version": 37, "status": false, "type": 8, "created_at": "2020-07-03T16:59:19.120Z", "updated_at": null}},
+	{"model": "metr.device", "pk": 3, "fields": {"identnr": 83110033, "manufacturer": 5317, "accessnr": 89, "version": 37, "status": false, "type": 8, "created_at": "2020-07-03T17:10:10.495Z", "updated_at": null}},
+	{"model": "metr.device", "pk": 4, "fields": {"identnr": 83110039, "manufacturer": 5317, "accessnr": 99, "version": 39, "status": false, "type": 9, "created_at": "2020-07-03T17:11:31.607Z", "updated_at": null}},
+	{"model": "metr.dimension", "pk": 1, "fields": {"name": "Time Point (time & date)", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 2, "fields": {"name": "Time Point (date)", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 3, "fields": {"name": "Manufacturer specific", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 4, "fields": {"name": "Units for H.C.A.", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 5, "fields": {"name": "Energy (kWh)", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 6, "fields": {"name": "Volume (m m^3)", "created_at": null, "updated_at": null}},
+	{"model": "metr.dimension", "pk": 7, "fields": {"name": "Error flags", "created_at": null, "updated_at": null}}
 ]
