@@ -11,5 +11,5 @@ unicodecsv==0.14.1
 pep8==1.7.1
 pylint==2.5.2
 pandas==1.0.3
-celery==4.3.0
+celery==5.2.2
 pika==1.1.0
